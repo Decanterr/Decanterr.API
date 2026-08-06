@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/Source/">
+    <Project Path="Source/AaxDecrypter/AaxDecrypter.csproj" />
+    <Project Path="Source/ApplicationServices/ApplicationServices.csproj" />
+    <Project Path="Source/AppScaffolding/AppScaffolding.csproj" />
+    <Project Path="Source/Decanterr.Api/Decanterr.Api.csproj" />
+    <Project Path="Source/AudibleUtilities/AudibleUtilities.csproj" />
+    <Project Path="Source/DataLayer.Postgres/DataLayer.Postgres.csproj" />
+    <Project Path="Source/DataLayer.Sqlite/DataLayer.Sqlite.csproj" />
+    <Project Path="Source/DataLayer/DataLayer.csproj" />
+    <Project Path="Source/DtoImporterService/DtoImporterService.csproj" />
+    <Project Path="Source/FileLiberator/FileLiberator.csproj" />
+    <Project Path="Source/FileManager/FileManager.csproj" />
+    <Project Path="Source/LibationFileManager/LibationFileManager.csproj" />
+    <Project Path="Source/LibationSearchEngine/LibationSearchEngine.csproj" />
+  </Folder>
+</Solution>
+

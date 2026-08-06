@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Decanterr.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="7.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationServices\ApplicationServices.csproj" />
+    <ProjectReference Include="..\AppScaffolding\AppScaffolding.csproj" />
+    <ProjectReference Include="..\AudibleUtilities\AudibleUtilities.csproj" />
+    <ProjectReference Include="..\FileLiberator\FileLiberator.csproj" />
+    <ProjectReference Include="..\LibationFileManager\LibationFileManager.csproj" />
+    <ProjectReference Include="..\LibationSearchEngine\LibationSearchEngine.csproj" />
+    <ProjectReference Include="..\DataLayer\DataLayer.csproj" />
+    <ProjectReference Include="..\DataLayer.Postgres\DataLayer.Postgres.csproj" />
+    <ProjectReference Include="..\DtoImporterService\DtoImporterService.csproj" />
+  </ItemGroup>
+
+</Project>
+

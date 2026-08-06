@@ -1,0 +1,25 @@
+# Build results
+bin/
+obj/
+out/
+
+# Local secrets (real values live here, sanitized template stays in appsettings.json)
+appsettings.Development.json
+appsettings.*.local.json
+*.user
+
+# Local manual testing scratchpad (see README for API call examples)
+api.http
+
+# Rider/VS
+.vs/
+.idea/
+*.suo
+
+# Docker local volumes referenced by docker-compose.api.yml
+/config/
+/books/
+
+# OS
+.DS_Store
+Thumbs.db

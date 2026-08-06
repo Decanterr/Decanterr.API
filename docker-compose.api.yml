@@ -1,0 +1,52 @@
+services:
+  decanterr-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/config
+      - ./books:/books
+    environment:
+      - ConnectionStrings__Postgres=Host=db;Port=5432;Database=decanterr;Username=decanterr;Password=changeme
+      - ApiKeys__0=CHANGE-ME-TO-A-SECURE-KEY
+      - LibationFiles=/config
+      - BooksDirectory=/books
+      - Cors__Origins__0=http://localhost:3000
+      - Cors__Origins__1=http://localhost:5173
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  decanterr-web:
+    build:
+      context: ../Decanterr.Web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://decanterr-api:8080
+      - VITE_API_KEY=CHANGE-ME-TO-A-SECURE-KEY
+    depends_on:
+      - decanterr-api
+    restart: unless-stopped
+
+  db:
+    image: postgres:17
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=decanterr
+      - POSTGRES_USER=decanterr
+      - POSTGRES_PASSWORD=changeme
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U decanterr"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
