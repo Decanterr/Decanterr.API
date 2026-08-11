@@ -1,12 +1,12 @@
 # Decanterr API
 
-A headless, self-hosted ASP.NET Core backend for managing an audiobook library — built on top of [Libation's](https://github.com/rmcrackan/Libation) core liberation/decryption engine, exposed as a REST + SignalR API for the [Decanterr.Web](../Decanterr.Web) frontend.
+A headless, self-hosted ASP.NET Core backend for managing an audiobook library — built on top of [Libation](https://github.com/rmcrackan/Libation), exposed as a REST + SignalR API for the [Decanterr.Web](../Decanterr.Web) frontend.
 
 ## Tech stack
 
 - ASP.NET Core (net10.0) Web API + SignalR
 - PostgreSQL (via `DataLayer.Postgres`)
-- Vendored Libation core libraries (`AaxDecrypter`, `FileLiberator`, `AudibleUtilities`, `LibationFileManager`, etc.) for account management, downloading, and decryption
+- Vendored Libation core libraries (`AaxDecrypter`, `FileLiberator`, `AudibleUtilities`, `LibationFileManager`, etc.) for account management, downloading, and library processing
 
 ## Getting started
 
@@ -26,9 +26,9 @@ Key settings (via `appsettings.json`, environment variables, or `appsettings.Dev
 | `ApiKeys`                         | List of accepted API keys for `X-Api-Key` auth            |
 | `ConnectionStrings:Postgres`      | PostgreSQL connection string                              |
 | `LibationFiles`                   | Directory for Libation's config/settings/database          |
-| `BooksDirectory`                  | Where liberated (downloaded) books are stored              |
+| `BooksDirectory`                  | Where processed (downloaded) books are stored              |
 | `Cors:Origins`                    | Allowed origins for the web frontend                       |
-| `Audiobookshelf:Enabled/Url/ApiToken` | Optional sync target for uploading liberated books        |
+| `Audiobookshelf:Enabled/Url/ApiToken` | Optional sync target for uploading processed books        |
 
 ## Docker
 
@@ -58,7 +58,7 @@ curl "http://localhost:5000/api/books/search?q=Mistborn" \
 curl -X POST http://localhost:5000/api/library/scan \
   -H "X-Api-Key: CHANGE-ME-TO-A-SECURE-KEY"
 
-# Liberate (download/decrypt) a book by ASIN, URL, or product ID
+# Process (download) a book by ASIN, URL, or product ID
 curl -X POST http://localhost:5000/api/liberate \
   -H "X-Api-Key: CHANGE-ME-TO-A-SECURE-KEY" \
   -H "Content-Type: application/json" \
