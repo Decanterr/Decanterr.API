@@ -21,6 +21,7 @@ public record BookDto
     public string? PictureId { get; init; }
     public DateTime? DatePublished { get; init; }
     public string? Publisher { get; init; }
+    public bool InAudiobookshelf { get; init; }
 }
 
 public record RatingDto

@@ -1,4 +1,5 @@
 using DataLayer;
+using Decanterr.Api.Services;
 
 namespace Decanterr.Api.Models;
 
@@ -10,6 +11,7 @@ public static class DtoMapper
         return new BookDto
         {
             AudibleProductId = book.AudibleProductId,
+            InAudiobookshelf = AudiobookshelfUploadTracker.IsUploaded(book.AudibleProductId),
             Title = book.Title,
             Subtitle = book.Subtitle,
             TitleWithSubtitle = book.TitleWithSubtitle,

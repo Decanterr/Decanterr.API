@@ -9,11 +9,13 @@ public class AudiobookshelfController : ControllerBase
 {
     private readonly AudiobookshelfClient _client;
     private readonly AudiobookshelfSettingsStore _settingsStore;
+    private readonly AudiobookshelfUploadService _uploadService;
 
-    public AudiobookshelfController(AudiobookshelfClient client, AudiobookshelfSettingsStore settingsStore)
+    public AudiobookshelfController(AudiobookshelfClient client, AudiobookshelfSettingsStore settingsStore, AudiobookshelfUploadService uploadService)
     {
         _client = client;
         _settingsStore = settingsStore;
+        _uploadService = uploadService;
     }
 
     /// <summary>Get the current Audiobookshelf settings. The API token is never returned; only whether one is set.</summary>
@@ -91,6 +93,19 @@ public class AudiobookshelfController : ControllerBase
         return success
             ? Ok(new { message = "Library scan triggered" })
             : StatusCode(502, new { error = "Failed to trigger library scan" });
+    }
+
+    /// <summary>Manually upload an already-unlocked book to Audiobookshelf.</summary>
+    [HttpPost("upload/{asin}")]
+    public async Task<ActionResult> UploadBook(string asin)
+    {
+        if (!_client.IsEnabled)
+            return BadRequest(new { error = "Audiobookshelf integration is not configured" });
+
+        var (success, error) = await _uploadService.UploadExistingBookAsync(asin);
+        return success
+            ? Ok(new { message = "Book uploaded to Audiobookshelf" })
+            : BadRequest(new { error });
     }
 }
 

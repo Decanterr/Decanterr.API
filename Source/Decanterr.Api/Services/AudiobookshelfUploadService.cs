@@ -23,21 +23,37 @@ public class AudiobookshelfUploadService
     }
 
     /// <summary>
+    /// Re-upload an already-liberated book to Audiobookshelf, locating its audio file on disk.
+    /// </summary>
+    public async Task<(bool success, string? error)> UploadExistingBookAsync(string asin)
+    {
+        if (!_client.IsEnabled)
+            return (false, "Audiobookshelf integration is not configured");
+
+        var filePath = LibationFileManager.AudibleFileStorage.Audio.GetPath(asin);
+        if (filePath is null)
+            return (false, "Book has not been unlocked yet");
+
+        var success = await UploadAsync(asin, filePath);
+        return (success, success ? null : "Failed to upload to Audiobookshelf");
+    }
+
+    /// <summary>
     /// Upload a liberated book to Audiobookshelf.
     /// Called after FileCreated fires from the liberation process.
     /// </summary>
-    public async Task UploadAsync(string asin, string filePath)
+    public async Task<bool> UploadAsync(string asin, string filePath)
     {
         if (!_client.IsEnabled)
         {
             _logger.LogDebug("Audiobookshelf integration is disabled; skipping upload for {Asin}", asin);
-            return;
+            return false;
         }
 
         if (!File.Exists(filePath))
         {
             _logger.LogWarning("Liberated file not found: {FilePath}", filePath);
-            return;
+            return false;
         }
 
         // Resolve library/folder on first call
@@ -47,7 +63,7 @@ public class AudiobookshelfUploadService
         if (_libraryId is null || _folderId is null)
         {
             _logger.LogError("Could not resolve Audiobookshelf library/folder. Skipping upload for {Asin}", asin);
-            return;
+            return false;
         }
 
         // Get book metadata from Libation DB
@@ -67,10 +83,13 @@ public class AudiobookshelfUploadService
         if (success)
         {
             _logger.LogInformation("Successfully uploaded {Asin} ('{Title}') to Audiobookshelf", asin, title);
+            AudiobookshelfUploadTracker.MarkUploaded(asin);
             await _client.ScanLibraryAsync(_libraryId);
         }
         else
             _logger.LogError("Failed to upload {Asin} ('{Title}') to Audiobookshelf", asin, title);
+
+        return success;
     }
 
     private async Task ResolveLibraryAsync()
