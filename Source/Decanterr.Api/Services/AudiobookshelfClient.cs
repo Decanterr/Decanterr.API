@@ -113,7 +113,8 @@ public class AudiobookshelfClient
         var options = _settingsStore.Get();
         try
         {
-            using var request = CreateRequest(HttpMethod.Get, "api/authorize", options);
+            // api/authorize is POST-only and returns 404 on GET; api/libraries works with a GET + bearer token.
+            using var request = CreateRequest(HttpMethod.Get, "api/libraries", options);
             var response = await _http.SendAsync(request);
             return response.IsSuccessStatusCode;
         }
