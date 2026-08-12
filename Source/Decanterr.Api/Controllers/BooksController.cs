@@ -16,10 +16,23 @@ public class BooksController : ControllerBase
         [FromQuery] int? skip = null,
         [FromQuery] int? take = null)
     {
-        var library = DbContexts.GetLibrary_Flat_NoTracking();
-
-        if (!includeDeleted)
-            library = library.Where(lb => !lb.IsDeleted).ToList();
+        List<LibraryBook> library;
+        if (includeDeleted)
+        {
+            // GetLibrary_Flat_NoTracking() always excludes deleted books at the query level,
+            // so deleted books must be fetched separately via GetDeletedLibraryBooks().
+            var seenAsins = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            library = [];
+            foreach (var lb in DbContexts.GetLibrary_Flat_NoTracking().Concat(DbContexts.GetDeletedLibraryBooks()))
+            {
+                if (seenAsins.Add(lb.Book.AudibleProductId))
+                    library.Add(lb);
+            }
+        }
+        else
+        {
+            library = DbContexts.GetLibrary_Flat_NoTracking();
+        }
 
         var total = library.Count;
 
