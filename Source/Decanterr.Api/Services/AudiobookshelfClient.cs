@@ -107,6 +107,21 @@ public class AudiobookshelfClient
         return true;
     }
 
+    /// <summary>Get the ASINs of every item in the given Audiobookshelf library (only items matched to an Audible ASIN).</summary>
+    public async Task<List<string>> GetLibraryItemAsinsAsync(string libraryId)
+    {
+        var options = _settingsStore.Get();
+        using var request = CreateRequest(HttpMethod.Get, $"api/libraries/{libraryId}/items?minified=1", options);
+        var response = await _http.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadFromJsonAsync<AbsLibraryItemsResponse>();
+        return json?.Results
+            .Select(r => r.Media?.Metadata?.Asin)
+            .Where(asin => !string.IsNullOrWhiteSpace(asin))
+            .Select(asin => asin!)
+            .ToList() ?? [];
+    }
+
     /// <summary>Verify connectivity to Audiobookshelf.</summary>
     public async Task<bool> TestConnectionAsync()
     {
@@ -163,5 +178,32 @@ public class AbsFolder
 
     [JsonPropertyName("fullPath")]
     public string FullPath { get; set; } = "";
+}
+
+public class AbsLibraryItemsResponse
+{
+    [JsonPropertyName("results")]
+    public List<AbsLibraryItem> Results { get; set; } = [];
+}
+
+public class AbsLibraryItem
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = "";
+
+    [JsonPropertyName("media")]
+    public AbsMedia? Media { get; set; }
+}
+
+public class AbsMedia
+{
+    [JsonPropertyName("metadata")]
+    public AbsMetadata? Metadata { get; set; }
+}
+
+public class AbsMetadata
+{
+    [JsonPropertyName("asin")]
+    public string? Asin { get; set; }
 }
 

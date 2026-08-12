@@ -76,6 +76,8 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+AudiobookshelfLibraryCache.Configure(app.Services);
+
 // --- Middleware ---
 app.MapOpenApi();
 app.UseSwaggerUI(c =>

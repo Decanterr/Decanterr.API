@@ -11,7 +11,8 @@ public static class DtoMapper
         return new BookDto
         {
             AudibleProductId = book.AudibleProductId,
-            InAudiobookshelf = AudiobookshelfUploadTracker.IsUploaded(book.AudibleProductId),
+            InAudiobookshelf = AudiobookshelfUploadTracker.IsUploaded(book.AudibleProductId)
+                || AudiobookshelfLibraryCache.Contains(book.AudibleProductId),
             Title = book.Title,
             Subtitle = book.Subtitle,
             TitleWithSubtitle = book.TitleWithSubtitle,
