@@ -378,7 +378,15 @@ public class SearchEngine
 	}
 	#endregion
 
-	private Lucene.Net.Store.Directory getIndex() => FSDirectory.Open(SearchEngineDirectory);
+	// All access is already serialized in-process via SearchEngineCommands.IndexLock, and native OS file
+	// locks (flock/fcntl) are unreliable on Docker bind-mounted volumes, causing spurious "lock obtain timed
+	// out" failures. Skip Lucene's native lock file entirely.
+	private Lucene.Net.Store.Directory getIndex()
+	{
+		var directory = FSDirectory.Open(SearchEngineDirectory);
+		directory.SetLockFactory(Lucene.Net.Store.NoLockFactory.GetNoLockFactory());
+		return directory;
+	}
 
 	//Defaults  to "LibationFiles/SearchEngine, but can be overridden
 	//in constructor for use in TrashBinDialog search
