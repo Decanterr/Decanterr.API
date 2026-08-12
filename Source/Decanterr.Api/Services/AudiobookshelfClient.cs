@@ -8,25 +8,37 @@ public class AudiobookshelfClient
 {
     private readonly HttpClient _http;
     private readonly ILogger<AudiobookshelfClient> _logger;
-    private readonly AudiobookshelfOptions _options;
+    private readonly AudiobookshelfSettingsStore _settingsStore;
 
-    public AudiobookshelfClient(HttpClient http, ILogger<AudiobookshelfClient> logger, IConfiguration configuration)
+    public AudiobookshelfClient(HttpClient http, ILogger<AudiobookshelfClient> logger, AudiobookshelfSettingsStore settingsStore)
     {
         _http = http;
         _logger = logger;
-        _options = configuration.GetSection("Audiobookshelf").Get<AudiobookshelfOptions>()
-            ?? new AudiobookshelfOptions();
-
-        _http.BaseAddress = new Uri(_options.Url.TrimEnd('/') + "/");
-        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiToken);
+        _settingsStore = settingsStore;
     }
 
-    public bool IsEnabled => _options.Enabled && !string.IsNullOrWhiteSpace(_options.Url) && !string.IsNullOrWhiteSpace(_options.ApiToken);
+    public bool IsEnabled
+    {
+        get
+        {
+            var options = _settingsStore.Get();
+            return options.Enabled && !string.IsNullOrWhiteSpace(options.Url) && !string.IsNullOrWhiteSpace(options.ApiToken);
+        }
+    }
+
+    private HttpRequestMessage CreateRequest(HttpMethod method, string relativePath, AudiobookshelfOptions options)
+    {
+        var request = new HttpRequestMessage(method, options.Url.TrimEnd('/') + "/" + relativePath);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiToken);
+        return request;
+    }
 
     /// <summary>Get all libraries from Audiobookshelf.</summary>
     public async Task<List<AbsLibrary>> GetLibrariesAsync()
     {
-        var response = await _http.GetAsync("api/libraries");
+        var options = _settingsStore.Get();
+        using var request = CreateRequest(HttpMethod.Get, "api/libraries", options);
+        var response = await _http.SendAsync(request);
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadFromJsonAsync<AbsLibrariesResponse>();
         return json?.Libraries ?? [];
@@ -35,6 +47,7 @@ public class AudiobookshelfClient
     /// <summary>Upload audiobook files to Audiobookshelf.</summary>
     public async Task<bool> UploadBookAsync(string libraryId, string folderId, string title, string? author, string? series, params string[] filePaths)
     {
+        var options = _settingsStore.Get();
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent(title), "title");
         content.Add(new StringContent(libraryId), "library");
@@ -61,7 +74,9 @@ public class AudiobookshelfClient
 
         _logger.LogInformation("Uploading book '{Title}' to Audiobookshelf library {LibraryId}", title, libraryId);
 
-        var response = await _http.PostAsync("api/upload", content);
+        using var request = CreateRequest(HttpMethod.Post, "api/upload", options);
+        request.Content = content;
+        var response = await _http.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -77,8 +92,10 @@ public class AudiobookshelfClient
     /// <summary>Trigger a library scan in Audiobookshelf.</summary>
     public async Task<bool> ScanLibraryAsync(string libraryId)
     {
+        var options = _settingsStore.Get();
         _logger.LogInformation("Triggering Audiobookshelf library scan for {LibraryId}", libraryId);
-        var response = await _http.PostAsync($"api/libraries/{libraryId}/scan", null);
+        using var request = CreateRequest(HttpMethod.Post, $"api/libraries/{libraryId}/scan", options);
+        var response = await _http.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -93,14 +110,16 @@ public class AudiobookshelfClient
     /// <summary>Verify connectivity to Audiobookshelf.</summary>
     public async Task<bool> TestConnectionAsync()
     {
+        var options = _settingsStore.Get();
         try
         {
-            var response = await _http.GetAsync("api/authorize");
+            using var request = CreateRequest(HttpMethod.Get, "api/authorize", options);
+            var response = await _http.SendAsync(request);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to connect to Audiobookshelf at {Url}", _options.Url);
+            _logger.LogError(ex, "Failed to connect to Audiobookshelf at {Url}", options.Url);
             return false;
         }
     }

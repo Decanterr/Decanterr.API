@@ -48,6 +48,7 @@ builder.Services.AddOpenApi(options =>
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<LiberationQueueService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<LiberationQueueService>());
+builder.Services.AddSingleton<AudiobookshelfSettingsStore>();
 builder.Services.AddHttpClient<AudiobookshelfClient>();
 builder.Services.AddSingleton<AudiobookshelfUploadService>();
 

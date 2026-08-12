@@ -8,10 +8,43 @@ namespace Decanterr.Api.Controllers;
 public class AudiobookshelfController : ControllerBase
 {
     private readonly AudiobookshelfClient _client;
+    private readonly AudiobookshelfSettingsStore _settingsStore;
 
-    public AudiobookshelfController(AudiobookshelfClient client)
+    public AudiobookshelfController(AudiobookshelfClient client, AudiobookshelfSettingsStore settingsStore)
     {
         _client = client;
+        _settingsStore = settingsStore;
+    }
+
+    /// <summary>Get the current Audiobookshelf settings. The API token is never returned; only whether one is set.</summary>
+    [HttpGet("settings")]
+    public ActionResult GetSettings()
+    {
+        var options = _settingsStore.Get();
+        return Ok(new
+        {
+            enabled = options.Enabled,
+            url = options.Url,
+            hasApiToken = !string.IsNullOrWhiteSpace(options.ApiToken)
+        });
+    }
+
+    /// <summary>
+    /// Update Audiobookshelf settings. Leave <paramref name="request"/>'s ApiToken null/empty to keep the
+    /// existing token unchanged (e.g. when only toggling Enabled or changing the Url).
+    /// </summary>
+    [HttpPut("settings")]
+    public ActionResult UpdateSettings([FromBody] UpdateAudiobookshelfSettingsRequest request)
+    {
+        var current = _settingsStore.Get();
+        _settingsStore.Save(new AudiobookshelfOptions
+        {
+            Enabled = request.Enabled,
+            Url = request.Url?.Trim() ?? "",
+            ApiToken = string.IsNullOrWhiteSpace(request.ApiToken) ? current.ApiToken : request.ApiToken.Trim()
+        });
+
+        return Ok(new { message = "Audiobookshelf settings updated" });
     }
 
     /// <summary>Test connectivity to the configured Audiobookshelf instance.</summary>
@@ -59,5 +92,12 @@ public class AudiobookshelfController : ControllerBase
             ? Ok(new { message = "Library scan triggered" })
             : StatusCode(502, new { error = "Failed to trigger library scan" });
     }
+}
+
+public class UpdateAudiobookshelfSettingsRequest
+{
+    public bool Enabled { get; set; }
+    public string? Url { get; set; }
+    public string? ApiToken { get; set; }
 }
 
