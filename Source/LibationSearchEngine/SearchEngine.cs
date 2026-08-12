@@ -384,7 +384,7 @@ public class SearchEngine
 	private Lucene.Net.Store.Directory getIndex()
 	{
 		var directory = FSDirectory.Open(SearchEngineDirectory);
-		directory.SetLockFactory(Lucene.Net.Store.NoLockFactory.GetNoLockFactory());
+		directory.SetLockFactory(Lucene.Net.Store.NoLockFactory.Instance);
 		return directory;
 	}
 
