@@ -10,6 +10,8 @@ namespace ApplicationServices;
 public static class DbContexts
 {
 	private static bool _sqliteDbValidated;
+	private static bool _migrationsApplied;
+	private static readonly object _migrationsLock = new();
 
 	private static readonly object _initialDatabaseStatisticsCaptureLock = new();
 
@@ -35,9 +37,21 @@ public static class DbContexts
 		var context = !string.IsNullOrEmpty(Configuration.Instance.PostgresqlConnectionString)
 			? LibationContextFactory.CreatePostgres(Configuration.Instance.PostgresqlConnectionString)
 			: LibationContextFactory.CreateSqlite(SqliteStorage.ConnectionString);
-		LibationContextFactory.ApplyMigrations(
-			context,
-			string.IsNullOrEmpty(Configuration.Instance.PostgresqlConnectionString) ? SqliteStorage.DatabasePath : null);
+
+		// Migrate() is not safe to run concurrently; only apply once per process
+		if (!_migrationsApplied)
+		{
+			lock (_migrationsLock)
+			{
+				if (!_migrationsApplied)
+				{
+					LibationContextFactory.ApplyMigrations(
+						context,
+						string.IsNullOrEmpty(Configuration.Instance.PostgresqlConnectionString) ? SqliteStorage.DatabasePath : null);
+					_migrationsApplied = true;
+				}
+			}
+		}
 
 		// Validate SQLite DB file was created and is accessible (once per process; OS may delay availability)
 		if (!_sqliteDbValidated && string.IsNullOrEmpty(Configuration.Instance.PostgresqlConnectionString))
