@@ -12,6 +12,7 @@ COPY Source/FileLiberator/FileLiberator.csproj Source/FileLiberator/
 COPY Source/AaxDecrypter/AaxDecrypter.csproj Source/AaxDecrypter/
 COPY Source/DataLayer/DataLayer.csproj Source/DataLayer/
 COPY Source/DataLayer.Postgres/DataLayer.Postgres.csproj Source/DataLayer.Postgres/
+COPY Source/DataLayer.Sqlite/DataLayer.Sqlite.csproj Source/DataLayer.Sqlite/
 COPY Source/DtoImporterService/DtoImporterService.csproj Source/DtoImporterService/
 COPY Source/FileManager/FileManager.csproj Source/FileManager/
 COPY Source/LibationFileManager/LibationFileManager.csproj Source/LibationFileManager/
@@ -50,4 +51,3 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8080/api/health || exit 1
 
 ENTRYPOINT ["dotnet", "Decanterr.Api.dll"]
-
